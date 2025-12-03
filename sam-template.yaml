@@ -7,7 +7,7 @@ Parameters:
   InstanceAmiId:
     Type: AWS::EC2::Image::Id
     Description: ID de la AMI (usa una Amazon Linux / Ubuntu / NixOS válida).
-    Default: ami-0749963dd978a57c7  # NixOS 23.05 en us-west-2, x86_64 hvm-ebs
+    Default: ami-07df5833f04703a2a  # NixOS 23.05 en us-east-1, x86_64 hvm-ebs
 
   InstanceType:
     Type: String
