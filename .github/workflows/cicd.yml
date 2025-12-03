@@ -7,8 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
-  S3_BUCKET:          ${{ secrets.S3_BUCKET }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  S3_BUCKET:          ${{ vars.S3_BUCKET }}
+  STACK_NAME:         ${{ vars.STACK_NAME }}
 
 jobs:
   deploy:
@@ -31,11 +32,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region:            ${{ env.AWS_DEFAULT_REGION }}
 
-    #   Opcional: instala SAM si la imagen no lo trae ya
-      - name: Install AWS SAM CLI
-        run: |
-          pip install aws-sam-cli
-
       - name: SAM Build
         run: |
           sam build \
@@ -45,7 +41,7 @@ jobs:
         env:
           SAM_CLI_TELEMETRY: 0
         run: |
-          STACK="prod-nixos-ec2-demo"
+          STACK="${STACK_NAME:-prod-nixos-ec2-demo}"
 
           echo "🚀 Deploying stack: $STACK"
           sam deploy \
