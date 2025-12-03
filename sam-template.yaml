@@ -23,10 +23,12 @@ Parameters:
   KeyName:
     Type: AWS::EC2::KeyPair::KeyName
     Description: Nombre de un KeyPair existente para conectarnos por SSH.
+    Default: nixos-demo-keypair
 
   SubnetId:
     Type: AWS::EC2::Subnet::Id
     Description: Subred (idealmente pública) donde se creará la instancia.
+    Default: subnet-08d0e1d36a28f6d2a
 
 Resources:
   EC2Instance:
