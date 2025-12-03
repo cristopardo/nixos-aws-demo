@@ -1,13 +1,15 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Demo mínima: instancia EC2 con IP pública y URL de acceso.
+  Demo mínima: instancia EC2 con IP pública, SG administrado por CloudFormation
+  y URL de acceso HTTP.
 
 Parameters:
   InstanceAmiId:
     Type: AWS::EC2::Image::Id
     Description: ID de la AMI (usa una Amazon Linux / Ubuntu / NixOS válida).
-    Default: ami-07df5833f04703a2a  # NixOS 23.05 en us-east-1, x86_64 hvm-ebs
+    # NixOS 23.05 en us-east-1, x86_64 hvm-ebs
+    Default: ami-07df5833f04703a2a
 
   InstanceType:
     Type: String
@@ -30,7 +32,32 @@ Parameters:
     Description: Subred (idealmente pública) donde se creará la instancia.
     Default: subnet-08d0e1d36a28f6d2a
 
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC donde se creará el Security Group de la instancia.
+    Default: vpc-0a7195ef0f9bf6908
+
 Resources:
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group para demo NixOS EC2
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        # SSH desde Internet (para demo)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        # HTTP desde Internet
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-sg"
+
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -38,11 +65,9 @@ Resources:
       InstanceType: !Ref InstanceType
       KeyName:      !Ref KeyName
 
-      # Forzamos IP pública en esta NIC
-      NetworkInterfaces:
-        - DeviceIndex: 0
-          SubnetId: !Ref SubnetId
-          AssociatePublicIpAddress: true
+      SubnetId: !Ref SubnetId
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
 
       Tags:
         - Key: Name
