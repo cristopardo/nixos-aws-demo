@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Demo mínima: instancia EC2 con IP pública y URL de acceso.
+
+Parameters:
+  InstanceAmiId:
+    Type: AWS::EC2::Image::Id
+    Description: ID de la AMI (usa una Amazon Linux / Ubuntu / NixOS válida).
+    Default: ami-0749963dd978a57c7  # NixOS 23.05 en us-west-2, x86_64 hvm-ebs
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.nano
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    Description: Tipo de instancia EC2.
+
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Nombre de un KeyPair existente para conectarnos por SSH.
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subred (idealmente pública) donde se creará la instancia.
+
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId:      !Ref InstanceAmiId
+      InstanceType: !Ref InstanceType
+      KeyName:      !Ref KeyName
+
+      # Forzamos IP pública en esta NIC
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: !Ref SubnetId
+          AssociatePublicIpAddress: true
+
+      Tags:
+        - Key: Name
+          Value: !Sub "${AWS::StackName}-demo-ec2"
+
+Outputs:
+  InstanceId:
+    Description: ID de la instancia EC2 creada
+    Value: !Ref EC2Instance
+
+  InstancePublicIp:
+    Description: IP pública de la instancia
+    Value: !GetAtt EC2Instance.PublicIp
+
+  InstancePublicDns:
+    Description: DNS público de la instancia
+    Value: !GetAtt EC2Instance.PublicDnsName
+
+  InstanceHttpUrl:
+    Description: URL HTTP usando el DNS público (ideal para backend/frontend)
+    Value: !Sub "http://${EC2Instance.PublicDnsName}"

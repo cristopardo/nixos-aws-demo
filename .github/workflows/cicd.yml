@@ -1,0 +1,57 @@
+name: CI/CD Deploy SAM EC2
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+  S3_BUCKET:          ${{ secrets.S3_BUCKET }}
+
+jobs:
+  deploy:
+    name: Deploy SAM Stack (EC2)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_DEFAULT_REGION }}
+
+    #   Opcional: instala SAM si la imagen no lo trae ya
+      - name: Install AWS SAM CLI
+        run: |
+          pip install aws-sam-cli
+
+      - name: SAM Build
+        run: |
+          sam build \
+            --template-file sam-template.yaml
+
+      - name: Deploy EC2 stack with SAM CLI
+        env:
+          SAM_CLI_TELEMETRY: 0
+        run: |
+          STACK="prod-nixos-ec2-demo"
+
+          echo "🚀 Deploying stack: $STACK"
+          sam deploy \
+            --template-file sam-template.yaml \
+            --stack-name    "$STACK" \
+            --s3-bucket     "${{ env.S3_BUCKET }}" \
+            --capabilities  CAPABILITY_IAM CAPABILITY_NAMED_IAM CAPABILITY_AUTO_EXPAND \
+            --region        "${{ env.AWS_DEFAULT_REGION }}" \
+            --no-fail-on-empty-changeset
