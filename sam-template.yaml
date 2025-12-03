@@ -13,7 +13,7 @@ Parameters:
 
   InstanceType:
     Type: String
-    Default: i8g.large
+    Default: t3.medium
     Description: Tipo de instancia EC2.
 
   KeyName:
