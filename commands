@@ -1,13 +1,21 @@
 chmod 400 nixos-demo-keypair.pem
-ssh -i ./nixos-demo-keypair.pem root@ec2-54-81-87-108.compute-1.amazonaws.com
-
+ssh -i ./nixos-demo-keypair.pem root@ec2-98-82-190-129.compute-1.amazonaws.com
 sudo mkdir -p /var/nixos-aws-demo
 cd /var/nixos-aws-demo
 
 nix-shell -p git
 sudo git clone https://github.com/cristopardo/nixos-aws-demo.git .
 
+sudo mv ./nix/python-fastapi.nix /etc/nixos/fastapi-python.nix
+
+nix-collect-garbage
+
+sudo nano /etc/nixos/configuration.nix
+
+sudo nixos-rebuild switch
+
 sudo nano /var/nixos-aws-demo/nixos/python-fastapi.nix
+
  # imports = [
  #   ./hardware-configuration.nix
  #   /var/nixos-aws-demo/nixos/python-fastapi.nix
